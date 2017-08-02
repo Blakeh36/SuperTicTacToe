@@ -4,32 +4,35 @@ from collections import Counter
 #setting up window
 pygame.init()
 
-display_height = 800
+display_height = 804  #display only needs one value since it's a square
+#for some reason if the length isn't a multiple of 6 it won't work correctly. Probably, due to rounding
 
+#getting colors
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
 
-mousePos = pygame.mouse.get_pos()
 
 gameDisplay = pygame.display.set_mode((display_height, display_height))
 
 pygame.display.set_caption('Super Tic Tac Toe')
-lines = [2 * display_height // 3, display_height // 3]
+lines = [2 * display_height // 3, display_height // 3] # makes the lines. It's a variable to make it easier reuse for the super board, but needs to be made into a function
 clock = pygame.time.Clock()
-clock.tick(60)
+clock.tick(60) #60 updates per second
 
+#these help find the points that are in the upper left-hand corner of each square (needs to be made into a function to be used in super board)
 twoThird = 2 * display_height // 3
 oneThird = display_height // 3
-def drawBoard(d):
+
+def drawBoard(d): #makes board
 
     for line in lines:
         pygame.draw.line(gameDisplay, white,(line, 0), (line, d), 1)
         pygame.draw.line(gameDisplay, white, (0,line), (d, line), 1)
 
-def mouseInSquare():
+def mouseInSquare(): #outputs the point in the upper left-hand corner for aa reference for the x's and circles.
 
     right = mousex > 2 * display_height // 3
     left = mousex < display_height // 3
