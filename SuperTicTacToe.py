@@ -7,7 +7,7 @@ pygame.init()
 display_height = 804  #display only needs one value since it's a square
 #for some reason if the length isn't a multiple of 6 it won't work correctly. Probably, due to rounding
 
-#getting colors
+#getting color examples
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
