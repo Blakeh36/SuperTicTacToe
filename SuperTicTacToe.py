@@ -18,7 +18,10 @@ blue = (0, 0, 255)
 gameDisplay = pygame.display.set_mode((display_height, display_height))
 
 pygame.display.set_caption('Super Tic Tac Toe')
-lines = [2 * display_height // 3, display_height // 3] # makes the lines. It's a variable to make it easier reuse for the super board, but needs to be made into a function
+def lines(d):
+    lines = [2 * d // 3, d // 3]
+    return lines
+
 clock = pygame.time.Clock()
 clock.tick(60) #60 updates per second
 
@@ -26,11 +29,11 @@ clock.tick(60) #60 updates per second
 twoThird = 2 * display_height // 3
 oneThird = display_height // 3
 
-def drawBoard(d): #makes board
+def drawBoard(startX, startY, d): #makes board
 
-    for line in lines:
-        pygame.draw.line(gameDisplay, white,(line, 0), (line, d), 1)
-        pygame.draw.line(gameDisplay, white, (0,line), (d, line), 1)
+    for line in lines(d):
+        pygame.draw.line(gameDisplay, white,(line, startY), (line, d), 1)
+        pygame.draw.line(gameDisplay, white, (startX ,line), (d, line), 1)
 
 def mouseInSquare(): #outputs the point in the upper left-hand corner for aa reference for the x's and circles.
 
@@ -124,21 +127,27 @@ while not stop:
         if event.type == pygame.MOUSEMOTION:
             mousex, mousey = event.pos
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if turn % 2 == 0 and mouseInSquare() not in circleRecords:
+
+            if turn % 2 == 0 and mouseInSquare() not in circleRecords and mouseInSquare() not in xRecords: #x's turn
                 drawx(mouseInSquare())
                 turn += 1
                 xRecords.append(mouseInSquare())
-            elif turn % 2 != 0 and mouseInSquare() not in xRecords:
+
+            elif turn % 2 != 0 and mouseInSquare() not in xRecords and mouseInSquare() not in circleRecords: #circle's turn
                 drawCircle(mouseInSquare())
                 turn += 1
                 circleRecords.append(mouseInSquare())
-            if threeRow(xRecords) == True:
+
+            if threeRow(xRecords) == True: #x wins
                 gameDisplay.fill(white)
-            elif threeRow(circleRecords) == True:
+
+            elif threeRow(circleRecords) == True: #circle wins
                 gameDisplay.fill(green)
-            elif len(xRecords) + len(circleRecords) == 9:
+
+            elif len(xRecords) + len(circleRecords) == 9: #tie
                 gameDisplay.fill(black)
-        drawBoard(display_height)
+
+        drawBoard(0, 0, display_height)
         pygame.display.flip()
         if event.type == pygame.QUIT:
             stop = True
