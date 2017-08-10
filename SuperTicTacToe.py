@@ -3,8 +3,8 @@ from collections import Counter
 
 #setting up window
 pygame.init()
-
-display_height = 804  #display only needs one value since it's a square
+level = 2
+display_height = 1000  #display only needs one value since it's a square
 #for some reason if the length isn't a multiple of 6 it won't work correctly. Probably, due to rounding
 
 #getting color examples
@@ -18,9 +18,6 @@ blue = (0, 0, 255)
 gameDisplay = pygame.display.set_mode((display_height, display_height))
 
 pygame.display.set_caption('Super Tic Tac Toe')
-def lines(d):
-    lines = [2 * d // 3, d // 3]
-    return lines
 
 clock = pygame.time.Clock()
 clock.tick(60) #60 updates per second
@@ -29,56 +26,75 @@ clock.tick(60) #60 updates per second
 twoThird = 2 * display_height // 3
 oneThird = display_height // 3
 
-def drawBoard(startX, startY, d): #makes board
 
-    for line in lines(d):
-        pygame.draw.line(gameDisplay, white,(line, startY), (line, d), 1)
-        pygame.draw.line(gameDisplay, white, (startX ,line), (d, line), 1)
+def setPoints(lv):  # outputs locations based on their level. These are the upper right-hand corners of the squares.
+    points = []
+    for n in range (1, 3 ** lv):
+        points.append(n * display_height // 3 ** lv)
+    #print(points)
+    return points
 
-def mouseInSquare(): #outputs the point in the upper left-hand corner for aa reference for the x's and circles.
 
-    right = mousex > 2 * display_height // 3
-    left = mousex < display_height // 3
-    middlex = mousex > display_height // 3 and mousex < 2 * display_height // 3
-    up = mousey < display_height // 3
-    middley = mousey < 2 * display_height // 3 and mousey > display_height // 3
-    down = mousey > 2 * display_height // 3
+def topLeftPoints(x):
+    list1 = []
+    i = 0
+    for n in range(0, 3 ** x):
+        if n != 0:
+            i = n * display_height // 3 ** x
+        else:
+            i = 0
+        for n in range(0, 3 ** x):
+            if n != 0:
+                j = n * display_height // 3 ** x
+            else:
+                j = 0
 
-    if right and up:
-        location = [twoThird, 0]
-    elif middlex and up:
-        location = [oneThird, 0]
-    elif left and up:
-        location = [0, 0]
-    elif right and middley:
-        location = [twoThird, oneThird]
-    elif middlex and middley:
-        location = [oneThird, oneThird]
-    elif left and middley:
-        location = [0,oneThird]
-    elif right and down:
-        location = [twoThird, twoThird]
-    elif middlex and down:
-        location = [oneThird, twoThird]
-    elif left and down:
-        location = [0, twoThird]
-    else:
-        location = [3,3]
-    print(location)
-    return location
+            list1.append([i, j])
+    return list1
 
-def drawx(list):
+
+def allTopLeftPoints(lv):
+    list2 = []
+    for x in reversed(range(1, lv + 1)):
+        list2.append(topLeftPoints(x))
+    return list2
+
+
+def drawBoard(lv): #makes board
+    points = setPoints(lv)
+    for x in reversed(range(1, lv + 1)):
+        if x == 1:
+            color = white
+        elif x % 2 == 0:
+            color = green
+        elif x % 3 == 0:
+            color = red
+        else: color = blue
+        for p in setPoints(x):
+            pygame.draw.line(gameDisplay, color,(p, 0), (p, display_height), 1)
+            pygame.draw.line(gameDisplay, color, (0, p), (display_height, p), 1)
+
+def mouseInSquare(lv):
+    for point in allTopLeftPoints(lv)[0]:
+        if mousex > point[0] and mousex < point[0] + display_height // 3 ** lv:
+            if mousey > point[1] and mousey < point[1] + display_height // 3 ** lv:
+                return point
+    return [3,3]
+
+
+locations = [[oneThird, oneThird], [twoThird, 0], [oneThird, 0], [0, 0], [twoThird, oneThird],[0,oneThird], [twoThird, twoThird], [oneThird, twoThird], [oneThird, twoThird], [0, twoThird] ]
+def drawx(list, lv):
     if list != [3,3]:
         x = list[0]
         y = list[1]
-        pygame.draw.line(gameDisplay, blue, (x,y), (x + oneThird, y + oneThird))
-        pygame.draw.line(gameDisplay, blue, (x + oneThird, y), (x, y + oneThird))
+        pygame.draw.line(gameDisplay, blue, (x,y), (x + oneThird // 3 ** (lv - 1), y + oneThird // 3 ** (lv - 1)))
+        pygame.draw.line(gameDisplay, blue, (x + oneThird // 3 ** (lv - 1), y), (x, y + oneThird // 3 ** (lv - 1)))
 
-def drawCircle(list):
+def drawCircle(list, lv):
     if list != [3,3]:
         x = list[0]
         y = list[1]
-        pygame.draw.circle(gameDisplay, red, (x + oneThird // 2, y + oneThird // 2), oneThird // 2, 1)
+        pygame.draw.circle(gameDisplay, red, (x + oneThird // 2 // 3 ** (lv - 1), y + oneThird // 2 // 3 ** (lv - 1)), oneThird // 2 // 3 ** (lv - 1), 1)
 
 def threeRow(record):
     win = False
@@ -108,8 +124,8 @@ def threeRow(record):
             if counter2 == 3:
                 win = True
 
-    print('coords')
-    print(record)
+    #print('coords')
+    #print(record)
     return win
 
 
@@ -128,15 +144,15 @@ while not stop:
             mousex, mousey = event.pos
         elif event.type == pygame.MOUSEBUTTONDOWN:
 
-            if turn % 2 == 0 and mouseInSquare() not in circleRecords and mouseInSquare() not in xRecords: #x's turn
-                drawx(mouseInSquare())
+            if turn % 2 == 0 and mouseInSquare(level) not in circleRecords and mouseInSquare(level) not in xRecords: #x's turn
+                drawx(mouseInSquare(level), level)
                 turn += 1
-                xRecords.append(mouseInSquare())
+                xRecords.append(mouseInSquare(level))
 
-            elif turn % 2 != 0 and mouseInSquare() not in xRecords and mouseInSquare() not in circleRecords: #circle's turn
-                drawCircle(mouseInSquare())
+            elif turn % 2 != 0 and mouseInSquare(level) not in xRecords and mouseInSquare(level) not in circleRecords: #circle's turn
+                drawCircle(mouseInSquare(level), level)
                 turn += 1
-                circleRecords.append(mouseInSquare())
+                circleRecords.append(mouseInSquare(level))
 
             if threeRow(xRecords) == True: #x wins
                 gameDisplay.fill(white)
@@ -147,7 +163,9 @@ while not stop:
             elif len(xRecords) + len(circleRecords) == 9: #tie
                 gameDisplay.fill(black)
 
-        drawBoard(0, 0, display_height)
+        #drawBoard(oneThird, oneThird, oneThird, green)
+        drawBoard(level)
+
         pygame.display.flip()
         if event.type == pygame.QUIT:
             stop = True
