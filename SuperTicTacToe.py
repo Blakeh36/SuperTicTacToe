@@ -3,7 +3,7 @@ from collections import Counter
 
 #setting up window
 pygame.init()
-level = 2
+level = 1
 display_height = 1000  #display only needs one value since it's a square
 #for some reason if the length isn't a multiple of 6 it won't work correctly. Probably, due to rounding
 
@@ -65,6 +65,8 @@ def drawBoard(lv): #makes board
     for x in reversed(range(1, lv + 1)):
         if x == 1:
             color = white
+        elif x % 4 == 0:
+            color = blue
         elif x % 2 == 0:
             color = green
         elif x % 3 == 0:
@@ -75,17 +77,20 @@ def drawBoard(lv): #makes board
             pygame.draw.line(gameDisplay, color, (0, p), (display_height, p), 1)
 
 def mouseInSquare(lv):
-    for point in allTopLeftPoints(lv)[0]:
-        if mousex > point[0] and mousex < point[0] + display_height // 3 ** lv:
-            if mousey > point[1] and mousey < point[1] + display_height // 3 ** lv:
-                return point
+    if lv > 0:
+        for point in allTopLeftPoints(lv)[0]:
+            if mousex > point[0] and mousex < point[0] + display_height // 3 ** lv:
+                if mousey > point[1] and mousey < point[1] + display_height // 3 ** lv:
+                    return point
+    else: return [0,0]
     return [3,3]
 def mouseInSquare2(lv, x, y):
-    for point in allTopLeftPoints(lv)[0]:
-        if x > point[0] and x < point[0] + display_height // 3 ** lv:
-            if y > point[1] and y < point[1] + display_height // 3 ** lv:
-                return point
-
+    if lv > 0:
+        for point in allTopLeftPoints(lv)[lv - len(allTopLeftPoints(lv))]:
+            if x > point[0] and x < point[0] + display_height // 3 ** lv:
+                if y > point[1] and y < point[1] + display_height // 3 ** lv:
+                    return point
+    else: return [0,0]
 
 def drawx(list, lv):
     if list != [3,3]:
@@ -143,7 +148,7 @@ while not stop:
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
 
-            if len(xRecords) == 0:
+            if len(xRecords) == 0 or level == 1:
 
                 if turn % 2 == 0 and mouseInSquare(level) not in circleRecords and mouseInSquare(level) not in xRecords: #x's turn
                     drawx(mouseInSquare(level), level)
@@ -166,18 +171,20 @@ while not stop:
                 elif len(xRecords) + len(circleRecords) == 9: #tie
                     gameDisplay.fill(black)
             else:
-                req = mouseInSquare2(level, allRecords[(turn - 1)][0] + 1, allRecords[(turn - 1)][1] + 1)
-                req2 = mouseInSquare2(level - 1, allRecords[(turn - 1)][0] + 1, allRecords[(turn - 1)][1] + 1)
+                xTurnCoord = allRecords[(turn - 1)][0] + 1
+                yTurnCoord = allRecords[(turn - 1)][1] + 1
+                req = mouseInSquare2(level, xTurnCoord, yTurnCoord)
+                req2 = mouseInSquare2(level - 1, xTurnCoord, yTurnCoord)
 
-                xReqLower = (req[0] - req2[0]) * 3 ** (level - 1)
-                yReqLower = (req[1] - req2[1]) * 3 ** (level - 1)
+                xReqLower = (req[0] - req2[0]) * 3 ** (1) + mouseInSquare2(level - 2, xTurnCoord, yTurnCoord)[0]
+                yReqLower = (req[1] - req2[1]) * 3 ** (1) + mouseInSquare2(level - 2, xTurnCoord, yTurnCoord)[1]
 
                 xReqUpper = xReqLower + display_height // 3 ** (level - 1)
                 yReqUpper = yReqLower + display_height // 3 ** (level - 1)
 
-                #print("between" + str(xReq) + " and " + str(xReq + display_height // 3 ** (level - 1)))
-                #print("between" + str(yReq) + " and " + str(yReq + display_height // 3 ** (level - 1)))
-
+                print("between" + str(xReqLower) + " and " + str(xReqUpper))
+                print("between" + str(yReqLower) + " and " + str(yReqUpper))
+                #print(allTopLeftPoints(3))
                 if xReqLower < mousex and mousex < xReqUpper and yReqLower < mousey and mousey < yReqUpper:
 
                     if turn % 2 == 0 and mouseInSquare(level) not in circleRecords and mouseInSquare(level) not in xRecords:  # x's turn
